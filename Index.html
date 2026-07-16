@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BD.Rafsan.vai Game</title>
+    <style>
+        body { text-align: center; font-family: sans-serif; background: #f0f0f0; }
+        canvas { border: 2px solid #333; background: #fff; margin-top: 20px; touch-action: none; }
+        #adminArea { position: absolute; top: 0; right: 0; width: 50px; height: 50px; }
+    </style>
+</head>
+<body>
+    <h1>BD.Rafsan.vai</h1>
+    <!-- এটি আপনার গোপন বাটন -->
+    <div id="adminArea"></div>
+    <canvas id="gameCanvas" width="400" height="200"></canvas>
+    <p>Tap to Jump</p>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        let dino = { x: 50, y: 150, w: 40, h: 40, dy: 0, jumpForce: 12, gravity: 0.6, grounded: false };
+        let obstacle = { x: 400, y: 160, w: 30, h: 30, speed: 5 };
+        let score = 0;
+        let godMode = false;
+        let clickCount = 0;
+
+        // গোপন বাটন লজিক
+        document.getElementById("adminArea").addEventListener("click", () => {
+            clickCount++;
+            if (clickCount >= 3) {
+                let pass = prompt("Enter Admin Password:");
+                if (pass === "rafsan123") {
+                    godMode = !godMode;
+                    alert("God Mode: " + (godMode ? "ON" : "OFF"));
+                    clickCount = 0;
+                }
+            }
+        });
+
+        function update() {
+            // মাধ্যাকর্ষণ
+            if (!dino.grounded) dino.dy += dino.gravity;
+            dino.y += dino.dy;
+            if (dino.y >= 150) { dino.y = 150; dino.dy = 0; dino.grounded = true; }
+
+            // বাধা নড়াচড়া
+            obstacle.x -= obstacle.speed;
+            if (obstacle.x < -30) { obstacle.x = 400; score++; obstacle.speed += 0.2; }
+
+            // সংঘর্ষ (Collision) চেক
+            if (!godMode && dino.x < obstacle.x + obstacle.w && dino.x + dino.w > obstacle.x && dino.y + dino.h > obstacle.y) {
+                alert("Game Over! Score: " + score);
+                score = 0; obstacle.speed = 5; obstacle.x = 400;
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // ডাইনোসর
+            ctx.fillStyle = godMode ? "red" : "black"; 
+            ctx.fillRect(dino.x, dino.y, dino.w, dino.h);
+            // বাধা
+            ctx.fillStyle = "green";
+            ctx.fillRect(obstacle.x, obstacle.y, obstacle.w, obstacle.h);
+            // স্কোর
+            ctx.fillStyle = "black";
+            ctx.fillText("Score: " + score, 10, 20);
+        }
+
+        function jump() { if (dino.grounded) { dino.dy = -dino.jumpForce; dino.grounded = false; } }
+
+        canvas.addEventListener("touchstart", (e) => { e.preventDefault(); jump(); });
+        canvas.addEventListener("click", jump);
+
+        function loop() { update(); draw(); requestAnimationFrame(loop); }
+        loop();
+    </script>
+</body>
+</html>
