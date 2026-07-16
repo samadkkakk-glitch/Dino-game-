@@ -3,14 +3,14 @@
 <head>
     <title>BD.Rafsan.vai Game</title>
     <style>
-        body { text-align: center; font-family: sans-serif; background: #333; color: white; }
-        canvas { border: 2px solid #fff; background: #eee; margin-top: 10px; display: block; margin-left: auto; margin-right: auto; }
-        #adminBtn { cursor: pointer; color: #ffeb3b; margin: 10px; font-weight: bold; }
-        #startBtn { padding: 10px 20px; font-size: 18px; cursor: pointer; background: #4CAF50; color: white; border: none; border-radius: 5px; }
+        body { text-align: center; font-family: sans-serif; background: #222; color: white; }
+        canvas { border: 4px solid #fff; background: #f9f9f9; margin-top: 20px; display: block; margin-left: auto; margin-right: auto; }
+        #adminBtn { cursor: pointer; color: #ffeb3b; margin: 10px; font-weight: bold; font-size: 18px; }
+        #startBtn { padding: 15px 30px; font-size: 20px; cursor: pointer; background: #e91e63; color: white; border: none; border-radius: 10px; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div id="adminBtn" onclick="openAdmin()">⚙️ Admin</div>
+    <div id="adminBtn" onclick="openAdmin()">⚙️ Admin Settings</div>
     <h1>BD.Rafsan.vai</h1>
     <canvas id="gameCanvas" width="400" height="200"></canvas>
     <br>
@@ -20,21 +20,18 @@
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         
-        let dino = { x: 50, y: 150, w: 40, h: 40, dy: 0, jumpForce: 12, gravity: 0.6, grounded: true };
-        let obstacle = { x: 400, y: 160, w: 30, h: 30, speed: 6 };
+        let dino = { x: 50, y: 150, w: 40, h: 40, dy: 0, jumpForce: 13, gravity: 0.6, grounded: true };
+        let obstacle = { x: 400, y: 160, w: 30, h: 30, speed: 7 };
         
-        let score = 0; // এটি এখন মিটারে বাড়বে
+        let distance = 0; 
         let godMode = false;
         let isRunning = false;
-        let gameSpeed = 6;
 
         function openAdmin() {
             let pass = prompt("Enter Admin Password:");
             if (pass === "rafsan123") { 
                 godMode = !godMode; 
-                // গড মোড অন হলে গতি বহুগুণ বেড়ে যাবে
-                gameSpeed = godMode ? 20 : 6; 
-                alert("God Mode: " + (godMode ? "ON - Speed Increased!" : "OFF")); 
+                alert("God Mode: " + (godMode ? "ON - Speed Max!" : "OFF")); 
             }
         }
 
@@ -42,37 +39,68 @@
             if(isRunning) return;
             isRunning = true; 
             obstacle.x = 400; 
-            score = 0; 
-            gameSpeed = godMode ? 20 : 6;
+            distance = 0; 
             loop(); 
         }
 
         function update() {
             if (!isRunning) return;
             
-            // ডাইনোসরের মুভমেন্ট
+            // গ্র্যাভিটি
             if (!dino.grounded) dino.dy += dino.gravity;
             dino.y += dino.dy;
             if (dino.y >= 150) { dino.y = 150; dino.dy = 0; dino.grounded = true; }
 
-            // স্কোর মিটার হিসেবে বাড়ছে
-            obstacle.x -= gameSpeed;
-            score += (gameSpeed / 10); 
+            // গড মোড অন থাকলে স্পিড বেশি, অফ থাকলে নরমাল
+            let currentSpeed = godMode ? 20 : obstacle.speed;
+            obstacle.x -= currentSpeed;
+
+            // দূরত্ব বাড়ানো (মিটার)
+            distance += (currentSpeed / 10); 
 
             if (obstacle.x < -30) { obstacle.x = 400; }
 
-            // সংঘর্ষ হলে গেম ওভার
+            // সংঘর্ষ চেক
             if (!godMode && dino.x < obstacle.x + obstacle.w && dino.x + dino.w > obstacle.x && dino.y + dino.h > obstacle.y) {
-                alert("Game Over! Distance: " + Math.floor(score) + " Meters");
+                alert("Game Over! Distance: " + Math.floor(distance) + " Meters");
                 isRunning = false;
             }
         }
 
         function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.length);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             // ডাইনোসর ডিজাইন
-            ctx.fillStyle = godMode ? "red" : "#222";
+            ctx.fillStyle = godMode ? "#f44336" : "#333";
+            ctx.fillRect(dino.x, dino.y, dino.w, dino.h);
+            ctx.fillStyle = "white"; // চোখ
+            ctx.fillRect(dino.x + 25, dino.y + 10, 8, 8);
+            
+            // বাধা
+            ctx.fillStyle = "#4caf50";
+            ctx.fillRect(obstacle.x, obstacle.y, obstacle.w, obstacle.h);
+            
+            // মিটার স্কোর
+            ctx.fillStyle = "black";
+            ctx.font = "20px Arial";
+            ctx.fillText("Distance: " + Math.floor(distance) + " m", 20, 30);
+        }
+
+        function jump() { if (isRunning && dino.grounded) { dino.dy = -dino.jumpForce; dino.grounded = false; } }
+
+        canvas.addEventListener("touchstart", (e) => { e.preventDefault(); jump(); });
+        canvas.addEventListener("click", jump);
+
+        function loop() { 
+            if(isRunning) { 
+                update(); 
+                draw(); 
+                requestAnimationFrame(loop); 
+            } 
+        }
+    </script>
+</body>
+</html>            ctx.fillStyle = godMode ? "red" : "#222";
             ctx.fillRect(dino.x, dino.y, dino.w, dino.h);
             ctx.fillRect(dino.x + 20, dino.y - 10, 20, 20);
             
