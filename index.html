@@ -3,70 +3,70 @@
 <head>
     <title>BD.Rafsan.vai Game</title>
     <style>
-        body { text-align: center; font-family: sans-serif; background: #f0f0f0; }
-        canvas { border: 2px solid #333; background: #fff; margin-top: 20px; touch-action: none; }
-        #adminArea { cursor: pointer; color: blue; font-size: 15px; font-weight: bold; margin-bottom: 5px; }
+        body { text-align: center; font-family: sans-serif; background: #333; color: white; }
+        canvas { border: 2px solid #fff; background: #eee; margin-top: 10px; display: block; margin-left: auto; margin-right: auto; }
+        #adminBtn { cursor: pointer; color: #ffeb3b; margin: 10px; font-weight: bold; }
+        #startBtn { padding: 10px 20px; font-size: 18px; cursor: pointer; background: #4CAF50; color: white; border: none; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div id="adminArea">Admin Settings</div>
+    <div id="adminBtn" onclick="openAdmin()">⚙️ Admin</div>
     <h1>BD.Rafsan.vai</h1>
     <canvas id="gameCanvas" width="400" height="200"></canvas>
-    <p>Tap the canvas to Jump</p>
+    <br>
+    <button id="startBtn" onclick="startGame()">START GAME</button>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
-
         let dino = { x: 50, y: 150, w: 40, h: 40, dy: 0, jumpForce: 12, gravity: 0.6, grounded: true };
         let obstacle = { x: 400, y: 160, w: 30, h: 30, speed: 6 };
-        let score = 0;
-        let godMode = false;
+        let score = 0, godMode = false, isRunning = false;
 
-        document.getElementById("adminArea").addEventListener("click", () => {
+        function openAdmin() {
             let pass = prompt("Enter Admin Password:");
-            if (pass === "rafsan123") {
-                godMode = !godMode;
-                alert("God Mode: " + (godMode ? "ON" : "OFF"));
-            }
-        });
+            if (pass === "rafsan123") { godMode = !godMode; alert("God Mode: " + (godMode ? "ON" : "OFF")); }
+        }
+
+        function startGame() { isRunning = true; obstacle.x = 400; score = 0; loop(); }
 
         function update() {
+            if (!isRunning) return;
             if (!dino.grounded) dino.dy += dino.gravity;
             dino.y += dino.dy;
             if (dino.y >= 150) { dino.y = 150; dino.dy = 0; dino.grounded = true; }
 
             obstacle.x -= obstacle.speed;
-            if (obstacle.x < -30) { obstacle.x = 400; score++; obstacle.speed += 0.1; }
+            if (obstacle.x < -30) { obstacle.x = 400; score++; }
 
             if (!godMode && dino.x < obstacle.x + obstacle.w && dino.x + dino.w > obstacle.x && dino.y + dino.h > obstacle.y) {
                 alert("Game Over! Score: " + score);
-                score = 0; obstacle.x = 400; obstacle.speed = 6;
+                isRunning = false;
             }
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // ডাইনোসরের বক্সকে একটু স্টাইল করা
-            ctx.fillStyle = godMode ? "red" : "#555"; 
+            // সুন্দর ডাইনোসর (বক্সের ওপর একটা মাথা)
+            ctx.fillStyle = godMode ? "red" : "#222";
             ctx.fillRect(dino.x, dino.y, dino.w, dino.h);
-            ctx.fillStyle = "white";
-            ctx.fillRect(dino.x + 25, dino.y + 5, 10, 10); // চোখ
-
-            // বাধা
+            ctx.fillRect(dino.x + 20, dino.y - 10, 20, 20); // মাথা
+            
             ctx.fillStyle = "green";
             ctx.fillRect(obstacle.x, obstacle.y, obstacle.w, obstacle.h);
-            
             ctx.fillStyle = "black";
             ctx.fillText("Score: " + score, 10, 20);
         }
 
-        function jump() { if (dino.grounded) { dino.dy = -dino.jumpForce; dino.grounded = false; } }
+        function jump() { if (isRunning && dino.grounded) { dino.dy = -dino.jumpForce; dino.grounded = false; } }
 
         canvas.addEventListener("touchstart", (e) => { e.preventDefault(); jump(); });
         canvas.addEventListener("click", jump);
 
+        function loop() { if(isRunning) { update(); draw(); requestAnimationFrame(loop); } }
+    </script>
+</body>
+</html>
         function loop() { update(); draw(); requestAnimationFrame(loop); }
         loop();
     </script>
